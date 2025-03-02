@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solana Pay Payment Gateway
 
-## Getting Started
+A Next.js application that enables merchants to accept payments in USDC while allowing customers to pay with their token of choice through Jupiter's exact-out swap feature.
 
-First, run the development server:
+## Features
 
+- Accept USDC payments as a merchant
+- Allow customers to pay with any verified token on Jupiter (BONK, JUP, TRUMP, etc.)
+- Generate Solana Pay QR codes for seamless mobile wallet payments
+- Automatic token swaps during transaction (in-flight, exact out swap)
+- Simple and intuitive user interface
+
+## Prerequisites
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Solana wallet (Phantom, Solflare, etc.)
+
+## Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/cutemonstersnft/payment-gateway-st.git
+cd payment-gateway
+```
+
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Download and install ngrok CLI
+   - Visit [ngrok.com](https://ngrok.com/) to download
+   - Follow their installation instructions for your operating system
+
+4. Configure RPC URLs
+   - Open `qr.tsx` and replace the RPC URL on line 45 with your own
+   - Open `checkout/route.tsx` and replace the RPC URL on line 72 with your own
+
+## Running the Application
+
+1. Start the development server
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. In a separate terminal, start ngrok to expose your local server
+```bash
+ngrok http 3000
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Navigate to the ngrok URL provided in the terminal
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## How to Use
 
-## Learn More
+1. Navigate to the ngrok URL in your browser
 
-To learn more about Next.js, take a look at the following resources:
+2. Fill in the payment details:
+   - Amount in USDC
+   - Recipient public key (must have a USDC token account)
+   - Token of choice (search for symbols like BONK, JUP, or TRUMP - must be from Jupiter's verified list)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Click "Checkout" to generate a Solana Pay QR code
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Scan the QR code with your Solana wallet (Phantom, Solflare, etc.)
 
-## Deploy on Vercel
+5. Approve the transaction in your wallet
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. Transaction complete! You can inspect the Solana transaction to see the in-flight swap
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## How It Works
+
+When a customer makes a payment:
+1. They select their preferred token for payment
+2. The system calculates the equivalent amount based on current market rates
+3. During the transaction, an in-flight swap occurs (exact out)
+4. The customer's selected token is debited from their wallet
+5. The merchant receives the exact USDC amount requested
+
+It's like magic! The merchant always receives USDC regardless of what token the customer uses to pay.
+
+## Deployment to Production
+
+Once your application is ready for production, you can easily deploy it using either Netlify or Vercel:
+
+### Vercel (Recommended)
+
+1. Install the Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Deploy to production:
+```bash
+vercel --prod
+```
+
+3. Follow the prompts to complete the deployment process.
+
+### Netlify
+
+1. Install the Netlify CLI:
+```bash
+npm install -g netlify-cli
+```
+
+2. Deploy to Netlify:
+```bash
+netlify deploy --prod
+```
+
+3. Follow the prompts to complete the deployment process.
+
+Both platforms offer continuous deployment from Git repositories, custom domains, and SSL certificates.
+
+## Troubleshooting
+
+- Ensure your RPC URLs are valid and have sufficient rate limits
+- Make sure the recipient wallet has a USDC token account
+- Verify that you have sufficient balance in your wallet for the transaction
+
+## License
+
+[MIT](LICENSE)

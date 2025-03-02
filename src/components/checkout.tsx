@@ -4,12 +4,12 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import debounce from "lodash/debounce";
-import { Search, Loader } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Keypair } from "@solana/web3.js";
 
 interface TokenInfo {
   symbol: string;
@@ -22,6 +22,7 @@ export default function Checkout() {
   const router = useRouter();
   const [amount, setAmount] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [shopPublicKey, setShopPublicKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [tokenResults, setTokenResults] = useState<TokenInfo | null>(null);
   const [selectedToken, setSelectedToken] = useState<TokenInfo | null>(null);
@@ -32,16 +33,16 @@ export default function Checkout() {
       return;
     }
 
-    const toastId = toast.loading('Searching for token...');
+    const toastId = toast.loading("Searching for token...");
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(`/api/getCa?symbol=${term}`);
       const data = await response.json();
       setTokenResults(data);
     } catch (error) {
       console.error("Error fetching token:", error);
-      toast.error('Failed to fetch token');
+      toast.error("Failed to fetch token");
     } finally {
       setIsLoading(false);
       toast.dismiss(toastId);
@@ -65,11 +66,16 @@ export default function Checkout() {
   };
 
   const handleCheckout = () => {
-    if (!amount || !selectedToken) return;
-    
+    if (!amount || !selectedToken || !shopPublicKey) return;
+
+    const keypair = Keypair.generate();
+    const reference = keypair.publicKey.toString();
+
     const searchParams = new URLSearchParams({
       amount: amount,
-      tokenMint: selectedToken.mint
+      tokenMint: selectedToken.mint,
+      reference: reference,
+      shopPublicKey: shopPublicKey,
     });
 
     router.push(`/checkout?${searchParams.toString()}`);
@@ -93,6 +99,18 @@ export default function Checkout() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </div>
+
+          <div className="grid w-full items-center gap-1.5">
+            <Label htmlFor="shopPublicKey">Shop Public Key</Label>
+            <Input
+              id="shopPublicKey"
+              type="text"
+              placeholder="Enter shop public key"
+              value={shopPublicKey}
+              onChange={(e) => setShopPublicKey(e.target.value)}
+              className="text-base"
             />
           </div>
 
@@ -148,7 +166,7 @@ export default function Checkout() {
 
           <Button
             className="w-full mt-4"
-            disabled={!amount || !selectedToken}
+            disabled={!amount || !selectedToken || !shopPublicKey}
             onClick={handleCheckout}
           >
             Checkout
